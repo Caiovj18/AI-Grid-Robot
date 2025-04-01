@@ -1,4 +1,4 @@
-from buscaGridNP import buscaGridNP  
+from GridSearch import buscaGridNP  
 import numpy as np
 from random import randrange
 

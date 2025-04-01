@@ -1,8 +1,8 @@
 import pygame
-from principalBuscaSemPesosGrid import Gera_Problema
-from buscaGridNP import buscaGridNP
-from principalBuscaSemPesosGrid import Get_Origin
-from principalBuscaSemPesosGrid import Get_Destiny
+from GridSearchNoWeight import Gera_Problema
+from GridSearch import buscaGridNP
+from GridSearchNoWeight import Get_Origin
+from GridSearchNoWeight import Get_Destiny
 import random
 
 def move_character_with_image(screen, grid, current_pos, target_x, target_y, cell_size, character_image):
@@ -60,7 +60,7 @@ def move_character_with_image(screen, grid, current_pos, target_x, target_y, cel
 sol = buscaGridNP()
 caminho = []
 
-person_pos = Get_Origin();
+person_pos = (1, 0)  # Posição inicial do personagem
 
 pygame.init()
 screen = pygame.display.set_mode((500, 500), pygame.RESIZABLE)
