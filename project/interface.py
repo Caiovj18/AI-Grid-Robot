@@ -74,7 +74,7 @@ ny  = 5
 qtd = 5
 # Gerar tabela aleatória (0 = caminho livre, 9 = obstáculo)
 grid = Gera_Problema(nx, ny, qtd); # Função que gera o problema
-character_image = pygame.image.load("PR_ATO.png")
+character_image = pygame.image.load("project/PR_ATO.png")
 character_image = pygame.transform.scale(character_image, (40,40))
 
 new_x, new_y = 4,3 
