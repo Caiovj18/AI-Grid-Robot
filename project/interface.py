@@ -116,7 +116,7 @@ class PathFinder:
         # Configurações da grid
         self.nx, self.ny = grid_size
         self.qtd_obstacles = obstacles
-        
+        self.animation_running = False  # Adicione esta linha
         # Gera a grid inicial
         self.reset_grid()
         
@@ -168,6 +168,7 @@ class PathFinder:
         self.character_pos = list(self.start_pos)
         self.current_segment = 0
         self.last_move_time = pygame.time.get_ticks()
+        self.animation_running = False  # Adicione esta linha
     
     def load_character_image(self):
         """Carrega a imagem do personagem ou cria uma padrão"""
@@ -186,6 +187,7 @@ class PathFinder:
             size = int(cell_size * 0.6)
             self.character_image = pygame.Surface((size, size), pygame.SRCALPHA)
             pygame.draw.circle(self.character_image, (0, 0, 255), (size//2, size//2), size//2)
+            
     def sucessores(self, estado):
         """Gera os sucessores válidos para um estado"""
         x, y = estado
@@ -238,7 +240,7 @@ class PathFinder:
     
     def update_animation(self):
         """Atualiza a posição do personagem na animação"""
-        if not self.path or self.current_segment >= len(self.path) - 1:
+        if not self.animation_running or not self.path or self.current_segment >= len(self.path) -  1:
             return False  # Animação concluída
         
         current_time = pygame.time.get_ticks()
@@ -321,8 +323,7 @@ class PathFinder:
 
         # Botões
         self.draw_button("Reset Grid", (menu_x + 20, 80, 160, 40), button_font)
-        # self.draw_button("Novo A*", (menu_x + 20, 140, 160, 40), button_font)
-        # self.draw_button("Fechar", (menu_x + 20, 200, 160, 40), button_font)
+
     
     def run(self):
         """Loop principal"""
@@ -342,16 +343,17 @@ class PathFinder:
                     mx, my = pygame.mouse.get_pos()
                     # Verifica cliques nos botões do menu
                     if self.grid_size_pixels + 20 <= mx <= self.grid_size_pixels + 180:
-                        if 80 <= my <= 120:
+                        if 80 <= my <= 120:  # Reset Grid
                             self.reset_grid()
-                        elif 140 <= my <= 180:
-                            self.find_path()
-                            self.character_pos = list(self.start_pos)
-                            self.current_segment = 0
-                            self.last_move_time = pygame.time.get_ticks()
-                        # elif 200 <= my <= 240:
-                        #     # running = False
-                        #     print("buceta 2")
+                            self.animation_running = False
+                        elif 140 <= my <= 180:  # Novo A*
+                            pass  # Mantenha o que já tem
+                        elif 200 <= my <= 240:  # Iniciar Animação
+                            if self.path:  # Só inicia se houver um caminho
+                                self.character_pos = list(self.start_pos)
+                                self.current_segment = 0
+                                self.last_move_time = pygame.time.get_ticks()
+                                self.animation_running = True
                             
                 self.manager.process_events(event)
                 
@@ -359,6 +361,12 @@ class PathFinder:
                 if event.type == pygame_gui.UI_DROP_DOWN_MENU_CHANGED:
                     if event.ui_element == self.dropdown:
                         print(f'Selecionado: {event.text}')  # Mostra a opção escolhida
+                        self.find_path()  # Encontra o caminho com o novo algoritmo
+                        self.character_pos = list(self.start_pos)
+                        self.current_segment = 0
+                        self.last_move_time = pygame.time.get_ticks()
+                        self.animation_running = True  # Ativa a animação
+                
                 
             # Atualiza elementos da interface
             self.manager.update(time_delta)
