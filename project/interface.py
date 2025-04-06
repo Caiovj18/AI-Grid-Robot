@@ -322,7 +322,7 @@ class PathFinder:
         # Botões
         self.draw_button("Reset Grid", (menu_x + 20, 80, 160, 40), button_font)
         # self.draw_button("Novo A*", (menu_x + 20, 140, 160, 40), button_font)
-        self.draw_button("Fechar", (menu_x + 20, 200, 160, 40), button_font)
+        # self.draw_button("Fechar", (menu_x + 20, 200, 160, 40), button_font)
     
     def run(self):
         """Loop principal"""
