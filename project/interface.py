@@ -252,6 +252,184 @@ class PathFinder:
                 valid_moves.append([nx, ny])
         return valid_moves
     
+    def find_path_with_algorithm(self):
+        """Seleciona o algoritmo de busca baseado na escolha do usuário"""
+        if self.selected_algorithm == 'Amplitude':
+            self.find_path_amplitude()
+        elif self.selected_algorithm == 'Profundidade':
+            self.find_path_profundidade()
+        elif self.selected_algorithm == 'Profundidade Lim.':
+            self.find_path_profundidade_limitada(limit=5)  # Limite padrão de 5
+        elif self.selected_algorithm == 'Aprof. Interativo':
+            self.find_path_aprofundamento_iterativo()
+        elif self.selected_algorithm == 'Bidirecional':
+            self.find_path_bidirecional()
+        else:
+            self.find_path_amplitude()
+
+    def find_path_amplitude(self):
+        """Busca em amplitude"""
+        l1 = listaDEnc()
+        l2 = listaDEnc()
+        
+        l1.insereUltimo(self.start_pos, 0, 0, None)
+        l2.insereUltimo(self.start_pos, 0, 0, None)
+        
+        visitado = [[self.start_pos, 0]]
+        
+        while not l1.vazio():
+            atual = l1.deletaPrimeiro()
+            
+            for novo in self.sucessores(atual.estado):
+                flag = True
+                for aux in visitado:
+                    if aux[0] == novo:
+                        if aux[1] <= (atual.v1 + 1):
+                            flag = False
+                        else:
+                            aux[1] = atual.v1 + 1
+                        break
+                
+                if flag:
+                    l1.insereUltimo(novo, atual.v1 + 1, 0, atual)
+                    l2.insereUltimo(novo, atual.v1 + 1, 0, atual)
+                    visitado.append([novo, atual.v1 + 1])
+                    
+                    if novo == list(self.end_pos):
+                        self.path = l2.exibeCaminho()
+                        return
+        
+        self.path = []
+
+    def find_path_profundidade(self):
+        """Busca em profundidade"""
+        pilha = listaDEnc()
+        visitados = set()
+        
+        pilha.insereUltimo(self.start_pos, 0, 0, None)
+        visitados.add(tuple(self.start_pos))
+        
+        while not pilha.vazio():
+            atual = pilha.deletaUltimo()
+            
+            if atual.estado == list(self.end_pos):
+                self.path = []
+                no = atual
+                while no is not None:
+                    self.path.insert(0, no.estado)
+                    no = no.pai
+                return
+            
+            for vizinho in self.sucessores(atual.estado):
+                if tuple(vizinho) not in visitados:
+                    visitados.add(tuple(vizinho))
+                    pilha.insereUltimo(vizinho, 0, 0, atual)
+        
+        self.path = []
+
+    def find_path_profundidade_limitada(self, limit):
+        """Busca em profundidade limitada"""
+        self.path = []
+        visitados = set()
+        
+        def dfs_limitada(estado, profundidade, caminho_atual):
+            if profundidade > limit:
+                return False
+            
+            if estado == list(self.end_pos):
+                self.path = caminho_atual + [estado]
+                return True
+            
+            visitados.add(tuple(estado))
+            
+            for vizinho in self.sucessores(estado):
+                if tuple(vizinho) not in visitados:
+                    if dfs_limitada(vizinho, profundidade + 1, caminho_atual + [estado]):
+                        return True
+            
+            return False
+        
+        dfs_limitada(list(self.start_pos), 0, [])
+        if not self.path:
+            self.path = []
+
+    def find_path_aprofundamento_iterativo(self):
+        """Aprofundamento iterativo"""
+        limite = 0
+        while True:
+            self.find_path_profundidade_limitada(limite)
+            if self.path:
+                return
+            limite += 1
+            if limite > self.nx * self.ny:  # Limite máximo razoável
+                self.path = []
+                return
+
+    def find_path_bidirecional(self):
+        """Busca bidirecional"""
+        # Fronteiras para busca a partir do início e do fim
+        fronteira_inicio = listaDEnc()
+        fronteira_fim = listaDEnc()
+        
+        # Dicionários para armazenar os nós visitados e seus pais
+        visitados_inicio = {tuple(self.start_pos): None}
+        visitados_fim = {tuple(self.end_pos): None}
+        
+        fronteira_inicio.insereUltimo(self.start_pos, 0, 0, None)
+        fronteira_fim.insereUltimo(self.end_pos, 0, 0, None)
+        
+        interseccao = None
+        
+        while not fronteira_inicio.vazio() and not fronteira_fim.vazio():
+            # Expande a partir do início
+            no_inicio = fronteira_inicio.deletaPrimeiro()
+            for vizinho in self.sucessores(no_inicio.estado):
+                if tuple(vizinho) not in visitados_inicio:
+                    visitados_inicio[tuple(vizinho)] = no_inicio.estado
+                    fronteira_inicio.insereUltimo(vizinho, 0, 0, no_inicio)
+                    
+                    if tuple(vizinho) in visitados_fim:
+                        interseccao = vizinho
+                        break
+            
+            if interseccao:
+                break
+                
+            # Expande a partir do fim
+            no_fim = fronteira_fim.deletaPrimeiro()
+            for vizinho in self.sucessores(no_fim.estado):
+                if tuple(vizinho) not in visitados_fim:
+                    visitados_fim[tuple(vizinho)] = no_fim.estado
+                    fronteira_fim.insereUltimo(vizinho, 0, 0, no_fim)
+                    
+                    if tuple(vizinho) in visitados_inicio:
+                        interseccao = vizinho
+                        break
+            
+            if interseccao:
+                break
+        
+        if interseccao:
+            # Reconstrói o caminho do início até a interseção
+            caminho_inicio = []
+            estado = tuple(interseccao)
+            while estado is not None:
+                caminho_inicio.append(list(estado))
+                estado = visitados_inicio.get(estado)
+            caminho_inicio = caminho_inicio[::-1]
+            
+            # Reconstrói o caminho da interseção até o fim
+            caminho_fim = []
+            estado = tuple(interseccao)
+            while estado is not None:
+                caminho_fim.append(list(estado))
+                estado = visitados_fim.get(estado)
+            
+            # Combina os caminhos (removendo a interseção duplicada)
+            self.path = caminho_inicio + caminho_fim[1:]
+        else:
+            self.path = []
+            
     def find_path(self):
         """Encontra o caminho usando busca em amplitude"""
         l1 = listaDEnc()
@@ -389,6 +567,11 @@ class PathFinder:
                     if self.grid_size_pixels + 20 <= mx <= self.grid_size_pixels + 180:
                         if 80 <= my <= 120:
                             self.reset_grid()
+                        elif 140 <= my <= 180:
+                            self.find_path()
+                            self.character_pos = list(self.start_pos)
+                            self.current_segment = 0
+                            self.last_move_time = pygame.time.get_ticks()
                     
                 self.manager.process_events(event)
                 
@@ -409,17 +592,17 @@ class PathFinder:
                             self.sy = 0
                         else:
                             starting_pos = starting_pos.strip("()").split(",")
-                            self.sx = int(starting_pos[0]);
-                            self.sy = int(starting_pos[1]);
+                            self.sx = int(starting_pos[0])
+                            self.sy = int(starting_pos[1])
                         
                         if(self.input_text2.get_text() == ""):
                             self.ex = 9
                             self.ey = 9
                         else:
                             ending_pos = ending_pos.strip("()").split(",")
-                            self.ex = int(ending_pos[0]);
-                            self.ey = int(ending_pos[1]);
-                            
+                            self.ex = int(ending_pos[0])
+                            self.ey = int(ending_pos[1])
+                        self.reset_grid();   
                         # Atualiza as posições e calcula o caminho
                         self.start_pos = (self.sx, self.sy)
                         self.end_pos = (self.ex, self.ey)
