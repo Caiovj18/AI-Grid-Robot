@@ -2,7 +2,7 @@ import pygame
 import sys
 import pygame_gui
 from GridSearchNoWeight import Gera_Problema
-from GridSearch import buscaGridNP as Algoritmos
+from GridSearch import buscaGridNP
 
 class Node:
     def __init__(self, pai, estado, v1, v2, anterior, proximo):
@@ -124,13 +124,16 @@ class PathFinder:
         
         # Configurações do pygame
         pygame.init()
+        
+        # Configuração do dropdown
+        self.algoritmo_selecionado = "Amplitude"
+        
+        #Configurações da tela
         self.menu_width = 200
         self.grid_size_pixels = 600
         self.screen = pygame.display.set_mode((self.grid_size_pixels + self.menu_width, self.grid_size_pixels), pygame.RESIZABLE)
-        
-        self.algoritmo_selecionado = 'Amplitude';
 
-        pygame.display.set_caption("Animação de algoritmos de busca")
+        pygame.display.set_caption("Animação de Algoritmos de Busca")
         self.clock = pygame.time.Clock()
         
         # Carrega a imagem do personagem
@@ -163,10 +166,10 @@ class PathFinder:
             manager=self.manager
         )
 
-        # Legenda do campo X
+        # Legenda da Posição Inicial
         self.label_x = pygame_gui.elements.UILabel(
             relative_rect=pygame.Rect((base_x, base_y + 70), (160, 20)),
-            text="Posição Inicial(X,Y):",
+            text="Posição Inicial (X, Y)",
             manager=self.manager
         )
 
@@ -176,10 +179,10 @@ class PathFinder:
             manager=self.manager
         )
 
-        # Legenda do campo Y
+        # Lengenda da Posição Final
         self.label_y = pygame_gui.elements.UILabel(
             relative_rect=pygame.Rect((base_x, base_y + 130), (160, 20)),
-            text="Posição Final(x,Y):",
+            text="Posição Final (X, Y):",
             manager=self.manager
         )
 
@@ -254,21 +257,21 @@ class PathFinder:
                 valid_moves.append([nx, ny])
         return valid_moves
     
-    def find_path_with_algorithm(self):
+    def find_path(self):
         """Seleciona o algoritmo de busca baseado na escolha do usuário"""
-        if self.selected_algorithm == 'Amplitude':
+        if self.algoritmo_selecionado == 'Amplitude':
             self.find_path_amplitude()
-        elif self.selected_algorithm == 'Profundidade':
+        elif self.algoritmo_selecionado == 'Profundidade':
             self.find_path_profundidade()
-        elif self.selected_algorithm == 'Profundidade Lim.':
-            self.find_path_profundidade_limitada(limit=5)  # Limite padrão de 5
-        elif self.selected_algorithm == 'Aprof. Interativo':
+        elif self.algoritmo_selecionado == 'Profundidade Lim.':
+            self.find_path_profundidade_limitada(limit=99)  # Limite padrão de 5
+        elif self.algoritmo_selecionado == 'Aprof. Interativo':
             self.find_path_aprofundamento_iterativo()
-        elif self.selected_algorithm == 'Bidirecional':
+        elif self.algoritmo_selecionado == 'Bidirecional':
             self.find_path_bidirecional()
         else:
             self.find_path_amplitude()
-
+        
     def find_path_amplitude(self):
         """Busca em amplitude"""
         l1 = listaDEnc()
@@ -431,42 +434,6 @@ class PathFinder:
             self.path = caminho_inicio + caminho_fim[1:]
         else:
             self.path = []
-            
-    def find_path(self):
-        """Encontra o caminho usando busca em amplitude"""
-        l1 = listaDEnc()
-        l2 = listaDEnc()
-        
-        l1.insereUltimo(self.start_pos, 0, 0, None)
-        l2.insereUltimo(self.start_pos, 0, 0, None)
-        
-        visitado = [[self.start_pos, 0]]
-        
-        while not l1.vazio():
-            atual = l1.deletaPrimeiro()
-            
-            for novo in self.sucessores(atual.estado):
-                # Verifica se já foi visitado
-                flag = True
-                for aux in visitado:
-                    if aux[0] == novo:
-                        if aux[1] <= (atual.v1 + 1):
-                            flag = False
-                        else:
-                            aux[1] = atual.v1 + 1
-                        break
-                
-                if flag:
-                    l1.insereUltimo(novo, atual.v1 + 1, 0, atual)
-                    l2.insereUltimo(novo, atual.v1 + 1, 0, atual)
-                    visitado.append([novo, atual.v1 + 1])
-                    
-                    if novo == list(self.end_pos):
-                        self.path = l2.exibeCaminho()
-                        return
-        
-        # Se não encontrou caminho
-        self.path = []
     
     def update_animation(self):
         """Atualiza a posição do personagem na animação"""
@@ -569,11 +536,6 @@ class PathFinder:
                     if self.grid_size_pixels + 20 <= mx <= self.grid_size_pixels + 180:
                         if 80 <= my <= 120:
                             self.reset_grid()
-                        elif 140 <= my <= 180:
-                            self.find_path()
-                            self.character_pos = list(self.start_pos)
-                            self.current_segment = 0
-                            self.last_move_time = pygame.time.get_ticks()
                     
                 self.manager.process_events(event)
                 
@@ -594,17 +556,17 @@ class PathFinder:
                             self.sy = 0
                         else:
                             starting_pos = starting_pos.strip("()").split(",")
-                            self.sx = int(starting_pos[0])
-                            self.sy = int(starting_pos[1])
+                            self.sx = int(starting_pos[0]) - 1
+                            self.sy = int(starting_pos[1]) - 1
                         
                         if(self.input_text2.get_text() == ""):
                             self.ex = 9
                             self.ey = 9
                         else:
                             ending_pos = ending_pos.strip("()").split(",")
-                            self.ex = int(ending_pos[0])
-                            self.ey = int(ending_pos[1])
-                        self.reset_grid();   
+                            self.ex = int(ending_pos[0]) - 1
+                            self.ey = int(ending_pos[1]) - 1
+                            
                         # Atualiza as posições e calcula o caminho
                         self.start_pos = (self.sx, self.sy)
                         self.end_pos = (self.ex, self.ey)
