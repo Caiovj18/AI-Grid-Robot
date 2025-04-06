@@ -172,7 +172,7 @@ class PathFinder:
     def load_character_image(self):
         """Carrega a imagem do personagem ou cria uma padrão"""
         try:
-            original_image = pygame.image.load("PR_ATO.png")
+            original_image = pygame.image.load("project/PR_ATO.png")
         # Manter proporções mas limitar ao tamanho máximo da célula
             cell_size = min(self.grid_size_pixels // self.ny, self.grid_size_pixels // self.nx)
             max_size = int(cell_size * 0.8)  # 80% do tamanho da célula
@@ -185,7 +185,7 @@ class PathFinder:
             cell_size = min(self.grid_size_pixels // self.ny, self.grid_size_pixels // self.nx)
             size = int(cell_size * 0.6)
             self.character_image = pygame.Surface((size, size), pygame.SRCALPHA)
-        pygame.draw.circle(self.character_image, (0, 0, 255), (size//2, size//2), size//2)
+            pygame.draw.circle(self.character_image, (0, 0, 255), (size//2, size//2), size//2)
     def sucessores(self, estado):
         """Gera os sucessores válidos para um estado"""
         x, y = estado
