@@ -127,8 +127,10 @@ class PathFinder:
         self.menu_width = 200
         self.grid_size_pixels = 600
         self.screen = pygame.display.set_mode((self.grid_size_pixels + self.menu_width, self.grid_size_pixels), pygame.RESIZABLE)
+        
+        self.algoritmo_selecionado = 'Amplitude';
 
-        pygame.display.set_caption("Path Finding Animation")
+        pygame.display.set_caption("Animação de algoritmos de busca")
         self.clock = pygame.time.Clock()
         
         # Carrega a imagem do personagem
@@ -164,7 +166,7 @@ class PathFinder:
         # Legenda do campo X
         self.label_x = pygame_gui.elements.UILabel(
             relative_rect=pygame.Rect((base_x, base_y + 70), (160, 20)),
-            text="Posição X Inicial:",
+            text="Posição Inicial(X,Y):",
             manager=self.manager
         )
 
@@ -177,7 +179,7 @@ class PathFinder:
         # Legenda do campo Y
         self.label_y = pygame_gui.elements.UILabel(
             relative_rect=pygame.Rect((base_x, base_y + 130), (160, 20)),
-            text="Posição Y Inicial:",
+            text="Posição Final(x,Y):",
             manager=self.manager
         )
 
