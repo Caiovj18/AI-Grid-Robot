@@ -1,5 +1,6 @@
 import pygame
 import sys
+import pygame_gui
 from GridSearchNoWeight import Gera_Problema
 
 class Node:
@@ -104,6 +105,13 @@ class listaDEnc:
         return path
 
 class PathFinder:
+    def draw_button(self, text, rect, font):
+        pygame.draw.rect(self.screen, (70, 70, 70), rect, border_radius=8)
+        pygame.draw.rect(self.screen, (200, 200, 200), rect, 2, border_radius=8)
+        label = font.render(text, True, (255, 255, 255))
+        label_rect = label.get_rect(center=(rect[0]+rect[2]//2, rect[1]+rect[3]//2))
+        self.screen.blit(label, label_rect)
+    
     def __init__(self, grid_size=(10, 10), obstacles=20):
         # Configurações da grid
         self.nx, self.ny = grid_size
@@ -114,7 +122,10 @@ class PathFinder:
         
         # Configurações do pygame
         pygame.init()
-        self.screen = pygame.display.set_mode((800, 800), pygame.RESIZABLE)
+        self.menu_width = 200
+        self.grid_size_pixels = 600
+        self.screen = pygame.display.set_mode((self.grid_size_pixels + self.menu_width, self.grid_size_pixels), pygame.RESIZABLE)
+
         pygame.display.set_caption("Path Finding Animation")
         self.clock = pygame.time.Clock()
         
@@ -125,6 +136,20 @@ class PathFinder:
         self.animation_speed = 0.5  # Segundos por célula
         self.last_move_time = 0
         self.current_segment = 0
+        
+         # Inicializa o manager ANTES de criar o dropdown
+        self.manager = pygame_gui.UIManager((self.grid_size_pixels + self.menu_width, self.grid_size_pixels))
+        
+        # Criando dropdown
+        self.dropdown = pygame_gui.elements.UIDropDownMenu(
+            options_list = ['Amplitude', 'Profundidade', 'Profundidade Lim.', 'Aprof. Interativo', 'Biderecional'],
+            starting_option = 'Amplitude',
+            relative_rect=pygame.Rect(
+                (self.grid_size_pixels + 20, 140), 
+                (160, 40)
+            ),
+            manager = self.manager
+        )
     
     def reset_grid(self):
         """Gera uma nova grid com obstáculos"""
@@ -147,13 +172,20 @@ class PathFinder:
     def load_character_image(self):
         """Carrega a imagem do personagem ou cria uma padrão"""
         try:
-            self.character_image = pygame.image.load("project/PR_ATO.png")
-            self.character_image = pygame.transform.scale(self.character_image, (40, 40))
+            original_image = pygame.image.load("PR_ATO.png")
+        # Manter proporções mas limitar ao tamanho máximo da célula
+            cell_size = min(self.grid_size_pixels // self.ny, self.grid_size_pixels // self.nx)
+            max_size = int(cell_size * 0.8)  # 80% do tamanho da célula
+            # Redimensionar mantendo proporção
+            width = min(original_image.get_width(), max_size)
+            height = min(original_image.get_height(), max_size)
+            self.character_image = pygame.transform.scale(original_image, (width, height))
         except:
-            # Fallback visual se a imagem não carregar
-            self.character_image = pygame.Surface((40, 40), pygame.SRCALPHA)
-            pygame.draw.circle(self.character_image, (0, 0, 255), (20, 20), 20)
-    
+        # Fallback visual se a imagem não carregar
+            cell_size = min(self.grid_size_pixels // self.ny, self.grid_size_pixels // self.nx)
+            size = int(cell_size * 0.6)
+            self.character_image = pygame.Surface((size, size), pygame.SRCALPHA)
+        pygame.draw.circle(self.character_image, (0, 0, 255), (size//2, size//2), size//2)
     def sucessores(self, estado):
         """Gera os sucessores válidos para um estado"""
         x, y = estado
@@ -212,21 +244,25 @@ class PathFinder:
         current_time = pygame.time.get_ticks()
         elapsed = (current_time - self.last_move_time) / 1000  # Segundos
         
-        if elapsed >= self.animation_speed:
-            self.current_segment += 1
-            self.last_move_time = current_time
-            if self.current_segment >= len(self.path) - 1:
-                self.character_pos = list(self.end_pos)
-                return False  # Animação concluída
-        
+        # Suavização da animação usando uma curva de ease-in-out
+        progress = min(1.0, elapsed / self.animation_speed)
+        smoothed_progress = progress * progress * (3 - 2 * progress)  # Suavização cúbica
+
         # Calcula posição interpolada
         start = self.path[self.current_segment]
         end = self.path[self.current_segment + 1]
-        progress = min(1.0, elapsed / self.animation_speed)
-        
-        self.character_pos[0] = start[0] + (end[0] - start[0]) * progress
-        self.character_pos[1] = start[1] + (end[1] - start[1]) * progress
-        
+    
+        self.character_pos[0] = start[0] + (end[0] - start[0]) * smoothed_progress
+        self.character_pos[1] = start[1] + (end[1] - start[1]) * smoothed_progress
+
+        # Avança para o próximo segmento quando completar
+        if progress >= 1.0:
+                self.current_segment += 1
+                self.last_move_time = current_time
+        if self.current_segment >= len(self.path) - 1:
+                self.character_pos = list(self.end_pos)
+                return False  # Animação concluída
+
         return True  # Animação em andamento
     
     def draw(self):
@@ -271,19 +307,61 @@ class PathFinder:
         info_text = f"Path length: {len(self.path)} | Press R to reset"
         text_surface = font.render(info_text, True, (255, 255, 255))
         self.screen.blit(text_surface, (10, 10))
+        
+        # Desenha o menu lateral
+        menu_x = self.grid_size_pixels
+        pygame.draw.rect(self.screen, (30, 30, 30), (menu_x, 0, self.menu_width, self.grid_size_pixels))
+
+        # Títulos e botões
+        font = pygame.font.SysFont(None, 28)
+        title = font.render("MENU", True, (255, 255, 255))
+        self.screen.blit(title, (menu_x + 60, 20))
+
+        button_font = pygame.font.SysFont(None, 24)
+
+        # Botões
+        self.draw_button("Reset Grid", (menu_x + 20, 80, 160, 40), button_font)
+        # self.draw_button("Novo A*", (menu_x + 20, 140, 160, 40), button_font)
+        self.draw_button("Fechar", (menu_x + 20, 200, 160, 40), button_font)
     
     def run(self):
         """Loop principal"""
         running = True
         while running:
+            time_delta = self.clock.tick(60) / 1000.00  # Tempo em segundos
+            
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     running = False
                 elif event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_ESCAPE:
                         running = False
-                    elif event.key == pygame.K_r:  # Reinicia com nova grid
+                    elif event.key == pygame.K_r:
                         self.reset_grid()
+                elif event.type == pygame.MOUSEBUTTONDOWN:
+                    mx, my = pygame.mouse.get_pos()
+                    # Verifica cliques nos botões do menu
+                    if self.grid_size_pixels + 20 <= mx <= self.grid_size_pixels + 180:
+                        if 80 <= my <= 120:
+                            self.reset_grid()
+                        elif 140 <= my <= 180:
+                            self.find_path()
+                            self.character_pos = list(self.start_pos)
+                            self.current_segment = 0
+                            self.last_move_time = pygame.time.get_ticks()
+                        # elif 200 <= my <= 240:
+                        #     # running = False
+                        #     print("buceta 2")
+                            
+                self.manager.process_events(event)
+                
+                # Verificando seleção no dropdown
+                if event.type == pygame_gui.UI_DROP_DOWN_MENU_CHANGED:
+                    if event.ui_element == self.dropdown:
+                        print(f'Selecionado: {event.text}')  # Mostra a opção escolhida
+                
+            # Atualiza elementos da interface
+            self.manager.update(time_delta)
             
             # Atualiza animação
             self.update_animation()
@@ -291,8 +369,9 @@ class PathFinder:
             # Desenha tudo
             self.screen.fill((0, 0, 0))
             self.draw()
+            self.manager.draw_ui(self.screen)  # desenha o dropdown por cima
             pygame.display.flip()
-            self.clock.tick(60)
+
         
         pygame.quit()
         sys.exit()
