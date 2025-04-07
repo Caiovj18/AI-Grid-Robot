@@ -195,6 +195,7 @@ class buscaGridNP(object):
 #------------------------------------------------------------------------------
     # BUSCA EM PROFUNDIDADE LIMITADA
     def prof_limitada(self,inicio,fim,nx,ny,mapa,lim):
+#------------------------------------------------------------------------------
         # manipular a PILHA para a busca
         l1 = listaDEnc()
 
