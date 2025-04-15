@@ -25,7 +25,7 @@ class UserInterface:
         pygame.init()
         
         # Configuração do Ícone
-        pygame.display.set_icon(pygame.image.load("PR_ATO_ICON.png"))
+        pygame.display.set_icon(pygame.image.load("project/PR_ATO_ICON.png"))
         
         # Configuração do dropdown
         self.sel_algorithm = "Amplitude"
@@ -131,7 +131,7 @@ class UserInterface:
         """Carrega a imagem do personagem ou cria uma padrão"""
         
         try:
-            original_image = pygame.image.load("PR_ATO.png");
+            original_image = pygame.image.load("project/PR_ATO.png");
             
             # Manter proporções mas limitar ao tamanho máximo da célula
             cell_size = min(self.grid_size_pixels // self.ny, self.grid_size_pixels // self.nx)
