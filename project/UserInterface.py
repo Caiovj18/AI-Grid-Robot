@@ -23,12 +23,19 @@ class UserInterface:
         
         # Configurações do pygame
         pygame.init()
+        is_toggled = False
+
+        clock = pygame.time.Clock()
+        running = True
         
         # Configuração do Ícone
         pygame.display.set_icon(pygame.image.load("project/PR_ATO_ICON.png"))
         
         # Configuração do dropdown
         self.sel_algorithm = "Amplitude"
+        
+        #configuração do switch button
+        self.sel_selection = 'Sem Peso'
         
         #Configurações da tela
         self.menu_width = 200
@@ -100,7 +107,22 @@ class UserInterface:
             text = 'Iniciar',
             manager = self.manager
         )
-
+        
+        #legenda do switch button
+        self.label_switch_button = pygame_gui.elements.UILabel(
+            relative_rect=pygame.Rect((base_x, base_y), (160, 20)),
+            text = "Seleção:",
+            manager = self.manager
+        )
+        
+        #Switch Button: Metódo de busca Com Peso
+        self.switch_button = pygame_gui.elements.UIDropDownMenu(
+            options_list = ['Sem Peso', 'Com Peso'],
+            starting_option= 'Sem Peso',
+            relative_rect = pygame.Rect((base_x, base_y + 260), (160, 30)),
+            manager = self.manager
+        )
+        
     def draw_button(self, text, rect, font):
         pygame.draw.rect(self.screen, (70, 70, 70), rect, border_radius = 8)
         pygame.draw.rect(self.screen, (200, 200, 200), rect, 2, border_radius = 8)
@@ -229,7 +251,6 @@ class UserInterface:
                     self.character_pos[0] * cell_size + cell_size//2))
         self.screen.blit(self.character_image, char_rect)
         
-        
         # Desenha o menu lateral
         menu_x = self.grid_size_pixels
         pygame.draw.rect(self.screen, (30, 30, 30), (menu_x, 0, self.menu_width, self.grid_size_pixels))
@@ -272,6 +293,9 @@ class UserInterface:
                     if event.ui_element == self.dropdown:
                         self.sel_algorithm = event.text
                         # print(f'Selecionado: {self.sel_algorithm}')
+                    
+                    if event.ui_element == self.switch_button:
+                        self.sel_selection = event.text
                 
                 if event.type == pygame_gui.UI_BUTTON_PRESSED:
                     if event.ui_element == self.botao_ler_texto:
