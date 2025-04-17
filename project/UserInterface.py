@@ -24,9 +24,6 @@ class UserInterface:
         # Configurações do pygame
         pygame.init()
         is_toggled = False
-
-        clock = pygame.time.Clock()
-        running = True
         
         # Configuração do Ícone
         pygame.display.set_icon(pygame.image.load("project/PR_ATO_ICON.png"))
@@ -52,6 +49,12 @@ class UserInterface:
         self.animation_speed = 0.5  # Segundos por célula
         self.last_move_time = 0
         self.current_segment = 0
+        
+        #criando o display
+        screen_width, screen_height = 800, 600
+        screen = pygame.display.set_mode((screen_width, screen_height))
+        pygame.display.set_caption('Checkbox Example')
+
         
         # Inicializa o manager ANTES de criar o dropdown
         self.manager = pygame_gui.UIManager((self.grid_size_pixels + self.menu_width, self.grid_size_pixels))
@@ -121,6 +124,19 @@ class UserInterface:
             starting_option= 'Sem Peso',
             relative_rect = pygame.Rect((base_x, base_y + 260), (160, 30)),
             manager = self.manager
+        )
+        #checkbox
+        self.checkbox = pygame_gui.elements.UIButton(
+        relative_rect=pygame.Rect((base_x, base_y + 230),(160, 30)),
+        text='Checkbox (unchecked)',
+        manager=self.manager,
+        object_id='#checkbox'
+        )
+        # Rótulo ao lado da checkbox
+        label = pygame_gui.elements.UILabel(
+        relative_rect=pygame.Rect(80, 50, 200, 20),
+        text="Aceitar termos e condições",
+        manager=self.manager
         )
         
     def draw_button(self, text, rect, font):
@@ -348,6 +364,8 @@ class UserInterface:
             self.draw()
             self.manager.draw_ui(self.screen)  # desenha o dropdown por cima
             pygame.display.flip()
+            
+            
         
         pygame.quit()
         sys.exit()
