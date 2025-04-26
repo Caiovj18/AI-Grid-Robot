@@ -3,6 +3,7 @@ import sys
 import pygame_gui
 from GridGenerator import RandomProblemGenerator
 from UnweightSearch import UnweightSearch
+import tkinter as tke
 
 class UserInterface:
     def __init__(self, grid_size = (10, 10), obstacles = 20):
@@ -113,7 +114,7 @@ class UserInterface:
         
         #legenda do switch button
         self.label_switch_button = pygame_gui.elements.UILabel(
-            relative_rect=pygame.Rect((base_x, base_y), (160, 20)),
+            relative_rect=pygame.Rect((base_x, base_y + 230), (160, 20)),
             text = "Seleção:",
             manager = self.manager
         )
@@ -122,22 +123,23 @@ class UserInterface:
         self.switch_button = pygame_gui.elements.UIDropDownMenu(
             options_list = ['Sem Peso', 'Com Peso'],
             starting_option= 'Sem Peso',
-            relative_rect = pygame.Rect((base_x, base_y + 260), (160, 30)),
+            relative_rect = pygame.Rect((base_x, base_y + 300), (160, 30)),
             manager = self.manager
         )
         #checkbox
         self.checkbox = pygame_gui.elements.UIButton(
-        relative_rect=pygame.Rect((base_x, base_y + 230),(160, 30)),
+        relative_rect=pygame.Rect((base_x, base_y + 260),(160, 30)),
         text='Checkbox (unchecked)',
         manager=self.manager,
         object_id='#checkbox'
         )
-        # Rótulo ao lado da checkbox
+        
+        """#/ Rótulo ao lado da checkbox
         label = pygame_gui.elements.UILabel(
         relative_rect=pygame.Rect(80, 50, 200, 20),
         text="Aceitar termos e condições",
         manager=self.manager
-        )
+        )"""
         
     def draw_button(self, text, rect, font):
         pygame.draw.rect(self.screen, (70, 70, 70), rect, border_radius = 8)
