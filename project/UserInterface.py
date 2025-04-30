@@ -51,18 +51,11 @@ class UserInterface:
         self.last_move_time = 0
         self.current_segment = 0
         
-        #criando o display
-        screen_width, screen_height = 800, 600
-        screen = pygame.display.set_mode((screen_width, screen_height))
-        pygame.display.set_caption('Checkbox Example')
-
-        
         # Inicializa o manager ANTES de criar o dropdown
         self.manager = pygame_gui.UIManager((self.grid_size_pixels + self.menu_width, self.grid_size_pixels))
         
         base_x = self.grid_size_pixels + 20
         base_y = 200
-        # espaco = 40
 
         # Legenda do Dropdown
         self.label_dropdown = pygame_gui.elements.UILabel(
@@ -75,46 +68,46 @@ class UserInterface:
         self.dropdown = pygame_gui.elements.UIDropDownMenu(
             options_list = ['Amplitude', 'Profundidade', 'Profundidade Lim.', 'Aprof. Interativo', 'Bidirecional'],
             starting_option = 'Amplitude',
-            relative_rect = pygame.Rect((base_x, base_y + 20), (160, 40)),
+            relative_rect = pygame.Rect((base_x, base_y), (160, 40)),
             manager = self.manager
         )
 
         # Legenda da Posição Inicial
         self.label_x = pygame_gui.elements.UILabel(
-            relative_rect = pygame.Rect((base_x, base_y + 70), (160, 20)),
+            relative_rect = pygame.Rect((base_x, base_y + 50), (160, 20)),
             text = "Posição Inicial (X, Y)",
             manager = self.manager
         )
 
         # Campo Inicial
         self.input_text = pygame_gui.elements.UITextEntryLine(
-            relative_rect = pygame.Rect((base_x, base_y + 90), (160, 30)),
+            relative_rect = pygame.Rect((base_x, base_y + 70), (160, 30)),
             manager = self.manager
         )
 
         # Lengenda da Posição Final
         self.label_y = pygame_gui.elements.UILabel(
-            relative_rect = pygame.Rect((base_x, base_y + 130), (160, 20)),
+            relative_rect = pygame.Rect((base_x, base_y + 120), (160, 20)),
             text = "Posição Final (X, Y):",
             manager = self.manager
         )
 
         # Campo Final
         self.input_text2 = pygame_gui.elements.UITextEntryLine(
-            relative_rect = pygame.Rect((base_x, base_y + 150), (160, 30)),
+            relative_rect = pygame.Rect((base_x, base_y + 140), (160, 30)),
             manager = self.manager
         )
 
         # Botão de Início
         self.botao_ler_texto = pygame_gui.elements.UIButton(
-            relative_rect = pygame.Rect((base_x, base_y + 190), (160, 30)),
+            relative_rect = pygame.Rect((base_x, base_y + 180), (160, 20)),
             text = 'Iniciar',
             manager = self.manager
         )
         
         #legenda do switch button
         self.label_switch_button = pygame_gui.elements.UILabel(
-            relative_rect=pygame.Rect((base_x, base_y + 230), (160, 20)),
+            relative_rect=pygame.Rect((base_x, base_y + 210), (160, 20)),
             text = "Seleção:",
             manager = self.manager
         )
@@ -123,24 +116,47 @@ class UserInterface:
         self.switch_button = pygame_gui.elements.UIDropDownMenu(
             options_list = ['Sem Peso', 'Com Peso'],
             starting_option= 'Sem Peso',
-            relative_rect = pygame.Rect((base_x, base_y + 300), (160, 30)),
+            relative_rect = pygame.Rect((base_x, base_y + 230), (160, 30)),
             manager = self.manager
         )
-        #checkbox
-        self.checkbox = pygame_gui.elements.UIButton(
-        relative_rect=pygame.Rect((base_x, base_y + 260),(160, 30)),
-        text='Checkbox (unchecked)',
-        manager=self.manager,
-        object_id='#checkbox'
-        )
         
-        """#/ Rótulo ao lado da checkbox
-        label = pygame_gui.elements.UILabel(
-        relative_rect=pygame.Rect(80, 50, 200, 20),
-        text="Aceitar termos e condições",
-        manager=self.manager
-        )"""
-        
+        self.visual_params = {
+            'mostrar_caminho': True,
+            'mostrar_celulas': False,
+            'colorir_caminho': True,
+            'mostrar_tempo': False
+        }
+       
+
+        # Crie os checkboxes após os outros elementos UI (no final do __init__)
+        param_y = base_y + 260  # Ajuste a posição Y conformxe necessário
+        self.checkboxes = []
+        parametros = [
+            ('Mostrar Caminho', 'mostrar_caminho'),
+            ('Mostrar Posição Células', 'mostrar_celulas'),
+            ('Colorir Caminho', 'colorir_caminho'),
+            ('Mostrar Tempo Execução', 'mostrar_tempo')
+        ]
+
+        for texto, param in parametros:
+            checkbox = pygame_gui.elements.UIButton(
+                relative_rect=pygame.Rect((base_x, param_y), (160, 30)),
+                text=f'[X] {texto}' if self.visual_params[param] else f'[ ] {texto}',
+                manager=self.manager,
+                object_id=f'#{param}'
+            )
+            self.checkboxes.append((checkbox, param))
+            param_y += 35  # Espaçamento entre checkboxes
+
+    def toggle_param(self, param):
+        """Alterna um parâmetro visual e atualiza o checkbox"""
+        self.visual_params[param] = not self.visual_params[param]
+        for checkbox, p in self.checkboxes:
+            if p == param:
+                checkbox.set_text(f'[{"X" if self.visual_params[param] else " "}] {checkbox.get_text()[4:]}')
+                checkbox.rebuild()
+                break
+            
     def draw_button(self, text, rect, font):
         pygame.draw.rect(self.screen, (70, 70, 70), rect, border_radius = 8)
         pygame.draw.rect(self.screen, (200, 200, 200), rect, 2, border_radius = 8)
@@ -171,7 +187,7 @@ class UserInterface:
         """Carrega a imagem do personagem ou cria uma padrão"""
         
         try:
-            original_image = pygame.image.load("project/PR_ATO.png");
+            original_image = pygame.image.load("project/PR_ATO.png")
             
             # Manter proporções mas limitar ao tamanho máximo da célula
             cell_size = min(self.grid_size_pixels // self.ny, self.grid_size_pixels // self.nx)
@@ -182,7 +198,7 @@ class UserInterface:
             height = min(original_image.get_height(), max_size)
             self.character_image = pygame.transform.scale(original_image, (width, height))
         except:
-        # Fallback visual se a imagem não carregar
+            # Fallback visual se a imagem não carregar
             cell_size = min(self.grid_size_pixels // self.ny, self.grid_size_pixels // self.nx)
             size = int(cell_size * 0.6)
             self.character_image = pygame.Surface((size, size), pygame.SRCALPHA)
@@ -247,11 +263,12 @@ class UserInterface:
                                 (y * cell_size, x * cell_size, cell_size, cell_size), 1)
         
         # Desenha o caminho
-        if self.path:
+        if self.path and self.visual_params['mostrar_caminho']:
             for i in range(len(self.path) - 1):
                 start = self.path[i]
                 end = self.path[i+1]
-                pygame.draw.line(self.screen, (0, 255, 0),
+                color = (0, 255, 0) if self.visual_params['colorir_caminho'] else (200, 200, 200)
+                pygame.draw.line(self.screen, color,
                                (start[1] * cell_size + cell_size//2, start[0] * cell_size + cell_size//2),
                                (end[1] * cell_size + cell_size//2, end[0] * cell_size + cell_size//2), 3)
         
@@ -310,17 +327,24 @@ class UserInterface:
                 if event.type == pygame_gui.UI_DROP_DOWN_MENU_CHANGED:
                     if event.ui_element == self.dropdown:
                         self.sel_algorithm = event.text
-                        # print(f'Selecionado: {self.sel_algorithm}')
                     
                     if event.ui_element == self.switch_button:
                         self.sel_selection = event.text
                 
                 if event.type == pygame_gui.UI_BUTTON_PRESSED:
-                    if event.ui_element == self.botao_ler_texto:
+                    # Primeiro verifica os checkboxes
+                    checkbox_pressed = False
+                    for checkbox, param in self.checkboxes:
+                        if event.ui_element == checkbox:
+                            self.toggle_param(param)
+                            checkbox_pressed = True
+                            break
+                    
+                    # Depois verifica o botão principal (só se não foi um checkbox)
+                    if not checkbox_pressed and event.ui_element == self.botao_ler_texto:
                         starting_pos = self.input_text.get_text()
-                        
                         ending_pos = self.input_text2.get_text()
-                        
+
                         if(self.input_text.get_text() == ""):
                             self.sx = 0
                             self.sy = 0
@@ -328,7 +352,7 @@ class UserInterface:
                             starting_pos = starting_pos.strip("()").split(",")
                             self.sx = int(starting_pos[0]) - 1
                             self.sy = int(starting_pos[1]) - 1
-                        
+
                         if(self.input_text2.get_text() == ""):
                             self.ex = 9
                             self.ey = 9
@@ -336,7 +360,7 @@ class UserInterface:
                             ending_pos = ending_pos.strip("()").split(",")
                             self.ex = int(ending_pos[0]) - 1
                             self.ey = int(ending_pos[1]) - 1
-                            
+                        
                         # Atualiza as posições e calcula o caminho
                         self.start_pos = (self.sx, self.sy)
                         self.end_pos = (self.ex, self.ey)
@@ -353,7 +377,7 @@ class UserInterface:
                         self.current_segment = 0
                         self.last_move_time = pygame.time.get_ticks()
                         self.animation_started = True  # Habilita a animação
-                
+
             # Atualiza elementos da interface
             self.manager.update(time_delta)
             
@@ -367,8 +391,6 @@ class UserInterface:
             self.manager.draw_ui(self.screen)  # desenha o dropdown por cima
             pygame.display.flip()
             
-            
-        
         pygame.quit()
         sys.exit()
 
