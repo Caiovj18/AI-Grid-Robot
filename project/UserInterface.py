@@ -38,7 +38,7 @@ class UserInterface:
         #Configurações da tela
         self.menu_width = 200
         self.grid_size_pixels = 600
-        self.screen = pygame.display.set_mode((self.grid_size_pixels + self.menu_width, self.grid_size_pixels), pygame.RESIZABLE)
+        self.screen = pygame.display.set_mode((800, 600), pygame.RESIZABLE)
 
         pygame.display.set_caption("Animação de Algoritmos de Busca")
         self.clock = pygame.time.Clock()
@@ -54,12 +54,12 @@ class UserInterface:
         # Inicializa o manager ANTES de criar o dropdown
         self.manager = pygame_gui.UIManager((self.grid_size_pixels + self.menu_width, self.grid_size_pixels))
         
-        base_x = self.grid_size_pixels + 20
-        base_y = 200
+        self.base_x = self.grid_size_pixels + 20
+        self.base_y = 200
 
         # Legenda do Dropdown
         self.label_dropdown = pygame_gui.elements.UILabel(
-            relative_rect=pygame.Rect((base_x, base_y), (160, 20)),
+            relative_rect=pygame.Rect((self.base_x, self.base_y), (160, 20)),
             text = "Algoritmo:",
             manager = self.manager
         )
@@ -68,46 +68,46 @@ class UserInterface:
         self.dropdown = pygame_gui.elements.UIDropDownMenu(
             options_list = ['Amplitude', 'Profundidade', 'Profundidade Lim.', 'Aprof. Interativo', 'Bidirecional'],
             starting_option = 'Amplitude',
-            relative_rect = pygame.Rect((base_x, base_y), (160, 40)),
+            relative_rect = pygame.Rect((self.base_x, self.base_y), (160, 40)),
             manager = self.manager
         )
 
         # Legenda da Posição Inicial
         self.label_x = pygame_gui.elements.UILabel(
-            relative_rect = pygame.Rect((base_x, base_y + 50), (160, 20)),
+            relative_rect = pygame.Rect((self.base_x, self.base_y + 50), (160, 20)),
             text = "Posição Inicial (X, Y)",
             manager = self.manager
         )
 
         # Campo Inicial
         self.input_text = pygame_gui.elements.UITextEntryLine(
-            relative_rect = pygame.Rect((base_x, base_y + 70), (160, 30)),
+            relative_rect = pygame.Rect((self.base_x, self.base_y + 70), (160, 30)),
             manager = self.manager
         )
 
         # Lengenda da Posição Final
         self.label_y = pygame_gui.elements.UILabel(
-            relative_rect = pygame.Rect((base_x, base_y + 120), (160, 20)),
+            relative_rect = pygame.Rect((self.base_x, self.base_y + 120), (160, 20)),
             text = "Posição Final (X, Y):",
             manager = self.manager
         )
 
         # Campo Final
         self.input_text2 = pygame_gui.elements.UITextEntryLine(
-            relative_rect = pygame.Rect((base_x, base_y + 140), (160, 30)),
+            relative_rect = pygame.Rect((self.base_x, self.base_y + 140), (160, 30)),
             manager = self.manager
         )
 
         # Botão de Início
         self.botao_ler_texto = pygame_gui.elements.UIButton(
-            relative_rect = pygame.Rect((base_x, base_y + 180), (160, 20)),
+            relative_rect = pygame.Rect((self.base_x, self.base_y + 180), (160, 20)),
             text = 'Iniciar',
             manager = self.manager
         )
         
         #legenda do switch button
         self.label_switch_button = pygame_gui.elements.UILabel(
-            relative_rect=pygame.Rect((base_x, base_y + 210), (160, 20)),
+            relative_rect=pygame.Rect((self.base_x, self.base_y + 210), (160, 20)),
             text = "Seleção:",
             manager = self.manager
         )
@@ -116,7 +116,7 @@ class UserInterface:
         self.switch_button = pygame_gui.elements.UIDropDownMenu(
             options_list = ['Sem Peso', 'Com Peso'],
             starting_option= 'Sem Peso',
-            relative_rect = pygame.Rect((base_x, base_y + 230), (160, 30)),
+            relative_rect = pygame.Rect((self.base_x, self.base_y + 230), (160, 30)),
             manager = self.manager
         )
         
@@ -129,7 +129,7 @@ class UserInterface:
        
 
         # Crie os checkboxes após os outros elementos UI (no final do __init__)
-        param_y = base_y + 260  # Ajuste a posição Y conformxe necessário
+        param_y = self.base_y + 260  # Ajuste a posição Y conformxe necessário
         self.checkboxes = []
         parametros = [
             ('Mostrar Caminho', 'mostrar_caminho'),
@@ -140,7 +140,7 @@ class UserInterface:
 
         for texto, param in parametros:
             checkbox = pygame_gui.elements.UIButton(
-                relative_rect=pygame.Rect((base_x, param_y), (160, 30)),
+                relative_rect=pygame.Rect((self.base_x, param_y), (160, 30)),
                 text=f'[X] {texto}' if self.visual_params[param] else f'[ ] {texto}',
                 manager=self.manager,
                 object_id=f'#{param}'
@@ -248,10 +248,50 @@ class UserInterface:
 
         return True  # Animação em andamento
     
+            
+    def recreate_menu_elements(self):
+        """Recria todos os elementos do menu ao redimensionar a janela."""
+        base_x = self.grid_size_pixels + 20
+        base_y = 200
+
+        # Recria o primeiro dropdown (algoritmo)
+        self.dropdown.kill()
+        self.dropdown = pygame_gui.elements.UIDropDownMenu(
+            options_list=['Amplitude', 'Profundidade', 'Profundidade Lim.', 'Aprof. Interativo', 'Bidirecional'],
+            starting_option=self.sel_algorithm,
+            relative_rect=pygame.Rect((base_x, base_y), (160, 40)),
+            manager=self.manager
+        )
+
+        # Recria o segundo dropdown (seleção)
+        self.switch_button.kill()
+        self.switch_button = pygame_gui.elements.UIDropDownMenu(
+            options_list=['Sem Peso', 'Com Peso'],
+            starting_option=self.sel_selection,
+            relative_rect=pygame.Rect((base_x, base_y + 230), (160, 30)),
+            manager=self.manager
+        )
+
+        # Recria os outros elementos do menu
+        self.label_dropdown.set_relative_position((base_x, base_y))
+        self.label_x.set_relative_position((base_x, base_y + 50))
+        self.input_text.set_relative_position((base_x, base_y + 70))
+        self.label_y.set_relative_position((base_x, base_y + 120))
+        self.input_text2.set_relative_position((base_x, base_y + 140))
+        self.botao_ler_texto.set_relative_position((base_x, base_y + 180))
+        self.label_switch_button.set_relative_position((base_x, base_y + 210))
+
+        # Atualiza posições dos checkboxes
+        param_y = base_y + 260
+        for checkbox, _ in self.checkboxes:
+            checkbox.set_relative_position((base_x, param_y))
+            param_y += 35
+
+
     def draw(self):
         """Desenha toda a cena"""
         width, height = self.screen.get_size()
-        cell_size = min(width // self.ny, height // self.nx)
+        cell_size = min(self.grid_size_pixels // self.nx, self.grid_size_pixels // self.ny)
         
         # Desenha a grid
         for x in range(self.nx):
@@ -282,13 +322,18 @@ class UserInterface:
         
         # Desenha o personagem
         char_rect = self.character_image.get_rect(
-            center=(self.character_pos[1] * cell_size + cell_size//2, 
+            center=(self.character_pos[1] * cell_size + cell_size//2,   
                     self.character_pos[0] * cell_size + cell_size//2))
         self.screen.blit(self.character_image, char_rect)
         
         # Desenha o menu lateral
+        # Desenha o menu lateral com altura total
         menu_x = self.grid_size_pixels
-        pygame.draw.rect(self.screen, (30, 30, 30), (menu_x, 0, self.menu_width, self.grid_size_pixels))
+        screen_width, screen_height = self.screen.get_size()
+
+        # Preenche toda a área à direita da grade
+        pygame.draw.rect(self.screen, (30, 30, 30), (menu_x, 0, screen_width - menu_x, screen_height))
+
 
         # Títulos e botões
         font = pygame.font.SysFont(None, 28)
@@ -299,7 +344,7 @@ class UserInterface:
 
         # Botões
         self.draw_button("Reset Grid", (menu_x + 20, 80, 160, 40), button_font)
-    
+        
     def run(self):
         """Loop principal"""
         running = True
@@ -321,6 +366,22 @@ class UserInterface:
                         if 80 <= my <= 120:
                             self.reset_grid()
                     
+                elif event.type == pygame.VIDEORESIZE:
+                    width, height = event.size
+                    self.screen = pygame.display.set_mode((width, height), pygame.RESIZABLE)
+
+                    # Redimensiona a grid para preencher a altura
+                    self.grid_size_pixels = min(width - self.menu_width, height)
+
+                    # Atualiza o layout do menu para a nova resolução
+                    self.manager.set_window_resolution((width, height))
+
+                    # Recria todos os elementos do menu
+                    self.recreate_menu_elements()
+
+                    # Força a atualização do layout do pygame_gui
+                    self.manager.update(0)
+
                 self.manager.process_events(event)
                 
                 # Verificando seleção no dropdown
